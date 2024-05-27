@@ -8,7 +8,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
 
 # Título de la Aplicación
-st.title('Predicción del Valor Futuro de las Acciones de Amazon usando Redes Neuronales LSTM')
+st.title('Predicción del Valor Futuro de las Acciones de Amazon usando Redes Neuronales LSTM!')
 
 # Mostrar la imagen debajo del título
 st.image('akinator2.webp', use_column_width=True)

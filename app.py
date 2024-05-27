@@ -6,9 +6,21 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
+from tensorflow.keras.callbacks import Callback
+
+# Clase de Callback para actualizar la barra de progreso en Streamlit
+class StreamlitProgressCallback(Callback):
+    def __init__(self, progress_bar, status_text, epochs):
+        self.progress_bar = progress_bar
+        self.status_text = status_text
+        self.epochs = epochs
+
+    def on_epoch_end(self, epoch, logs=None):
+        self.progress_bar.progress((epoch + 1) / self.epochs)
+        self.status_text.text(f'Epoch {epoch + 1}/{self.epochs} - Loss: {logs["loss"]:.4f}')
 
 # Título de la Aplicación
-st.title('Predicción del Valor Futuro de las Acciones de Amazon usando Redes Neuronales LSTM!')
+st.title('Predicción del Valor Futuro de las Acciones de Amazon usando Redes Neuronales LSTM.')
 
 # Mostrar la imagen debajo del título
 st.image('akinator2.webp', use_column_width=True)
@@ -54,7 +66,7 @@ if 'seq_length' not in st.session_state:
     st.session_state.seq_length = None
 
 # Cargar datos si se presiona el botón
-if st.button('Cargar datos mas recientes'):
+if st.button('Cargar datos actualizados desde Yahoo!'):
     df = cargar_datos()
     start_date = df.index.min().strftime('%Y-%m-%d')
     end_date = df.index.max().strftime('%Y-%m-%d')
@@ -80,7 +92,7 @@ if st.session_state.df is not None:
         title='Serie de Tiempo del Valor de las Acciones de Amazon',
         xaxis_title='Fecha (Días)',
         yaxis_title='Precio de Cierre ajustado (USD)',
-        xaxis_rangeslider_visible=True,
+        #xaxis_rangeslider_visible=True,
         width=1200,
         height=600,
         font=dict(
@@ -91,8 +103,15 @@ if st.session_state.df is not None:
     )
     st.plotly_chart(fig, use_container_width=True)
 
+    # Selección de cantidad de epochs
+    epochs = st.selectbox('Selecciona la cantidad de epochs para entrenar el modelo:', [1, 3, 5, 7, 10, 15], index=1)
+
     # Botón para entrenar el modelo
     if st.button('Entrenar modelo'):
+        # Mostrar barra de progreso
+        progress_bar = st.progress(0)
+        status_text = st.empty()
+
         # Preprocesar los datos
         data = df[['Adj Close']]
         data = data.dropna()
@@ -121,7 +140,7 @@ if st.session_state.df is not None:
 
         # Compilar y entrenar el modelo
         model.compile(optimizer='adam', loss='mean_squared_error')
-        model.fit(X_train, y_train, batch_size=1, epochs=1)
+        model.fit(X_train, y_train, batch_size=1, epochs=epochs, callbacks=[StreamlitProgressCallback(progress_bar, status_text, epochs)])
 
         # Hacer predicciones
         predictions = model.predict(X_test)

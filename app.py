@@ -54,7 +54,7 @@ if 'seq_length' not in st.session_state:
     st.session_state.seq_length = None
 
 # Cargar datos si se presiona el botón
-if st.button('Cargar Datos recientes'):
+if st.button('Cargar datos mas recientes'):
     df = cargar_datos()
     start_date = df.index.min().strftime('%Y-%m-%d')
     end_date = df.index.max().strftime('%Y-%m-%d')

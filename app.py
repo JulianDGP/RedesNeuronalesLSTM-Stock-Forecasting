@@ -20,7 +20,7 @@ st.markdown("""
   <a href="https://github.com/JulianDGP" target="_blank"><img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="30"></a> 
   <a href="https://www.linkedin.com/in/julian-david-gomez/" target="_blank"><img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="25"></a>
 - **Luis Felipe Rivera**:
-  <a href="https://github.com/LFelipe-RiveraH" target="_blank"><img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="30"></a>
+  <a href="https://github.com/LFelipe-RiveraH" target="_blank"><img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="30"></a> 
   <a href="https://www.linkedin.com/in/luis-felipe-rivera-hern%C3%A1ndez-8587b4185/" target="_blank"><img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="25"></a> 
 """, unsafe_allow_html=True)
 
@@ -37,6 +37,22 @@ def create_sequences(data, seq_length):
         y.append(data[i + seq_length])
     return np.array(X), np.array(y)
 
+# Inicializar variables de estado
+if 'df' not in st.session_state:
+    st.session_state.df = None
+if 'model_trained' not in st.session_state:
+    st.session_state.model_trained = False
+if 'predictions' not in st.session_state:
+    st.session_state.predictions = None
+if 'scaler' not in st.session_state:
+    st.session_state.scaler = None
+if 'model' not in st.session_state:
+    st.session_state.model = None
+if 'train_size' not in st.session_state:
+    st.session_state.train_size = None
+if 'seq_length' not in st.session_state:
+    st.session_state.seq_length = None
+
 # Cargar datos si se presiona el botón
 if st.button('Cargar Datos recientes'):
     df = cargar_datos()
@@ -45,10 +61,16 @@ if st.button('Cargar Datos recientes'):
     st.write(f'Datos cargados sin procesar desde {start_date} hasta {end_date}:')
     st.write(df)
     st.session_state.df = df
+    st.session_state.model_trained = False
+    st.experimental_rerun()
 
-# Mostrar gráfica si los datos están cargados
-if 'df' in st.session_state:
+# Mostrar tabla y gráfica si los datos están cargados
+if st.session_state.df is not None:
     df = st.session_state.df
+
+    # Mostrar tabla con datos crudos
+    st.write(f'Datos cargados sin procesar desde {df.index.min().strftime("%Y-%m-%d")} hasta {df.index.max().strftime("%Y-%m-%d")}:')
+    st.write(df)
 
     # Gráfica de la serie de tiempo
     st.write('Gráfica de la serie de tiempo del valor de las acciones:')
@@ -109,10 +131,29 @@ if 'df' in st.session_state:
         valid = df.iloc[train_size + seq_length:].copy()
         valid['Predictions'] = predictions
 
+        # Guardar el estado del modelo y las predicciones
+        st.session_state.model_trained = True
+        st.session_state.predictions = valid
+        st.session_state.scaler = scaler
+        st.session_state.model = model
+        st.session_state.train_size = train_size
+        st.session_state.seq_length = seq_length
+        st.experimental_rerun()
+
+    # Mostrar predicciones si el modelo ha sido entrenado
+    if st.session_state.model_trained:
+        valid = st.session_state.predictions
+
+        # Mostrar tabla con valores reales y predichos
+        st.write('Tabla de valores reales y predichos:')
+        resultados = valid[['Adj Close', 'Predictions']]
+        resultados.columns = ['Valor Real', 'Valor Predicho']
+        st.write(resultados)
+
         # Gráfica de predicción vs. realidad
         st.write('Gráfica de predicción vs. realidad:')
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=df.index[:train_size + seq_length], y=df['Adj Close'][:train_size + seq_length], mode='lines', name='Entrenamiento', line=dict(color='blue')))
+        fig.add_trace(go.Scatter(x=df.index[:st.session_state.train_size + st.session_state.seq_length], y=df['Adj Close'][:st.session_state.train_size + st.session_state.seq_length], mode='lines', name='Entrenamiento', line=dict(color='blue')))
         fig.add_trace(go.Scatter(x=valid.index, y=valid['Adj Close'], mode='lines', name='Real', line=dict(color='red')))
         fig.add_trace(go.Scatter(x=valid.index, y=valid['Predictions'], mode='lines', name='Predicción', line=dict(color='green')))
         fig.update_layout(
@@ -128,5 +169,31 @@ if 'df' in st.session_state:
             )
         )
         st.plotly_chart(fig, use_container_width=True)
+
+        # Sección para predicción de días futuros
+        st.write('### Hagamos la predicción de los siguientes días')
+        days_to_predict = st.slider('Selecciona el número de días para predecir:', 1, 30, 1)
+
+        if st.button('Predecir ahora'):
+            # Usar los datos completos para la predicción futura
+            last_sequence = st.session_state.scaler.transform(df[['Adj Close']].values[-st.session_state.seq_length:])
+            future_predictions = []
+
+            for _ in range(days_to_predict):
+                prediction = st.session_state.model.predict(last_sequence.reshape(1, st.session_state.seq_length, 1))
+                future_predictions.append(prediction[0, 0])
+                last_sequence = np.append(last_sequence[1:], prediction, axis=0)
+
+            future_predictions = st.session_state.scaler.inverse_transform(np.array(future_predictions).reshape(-1, 1))
+
+            # Crear las fechas futuras
+            last_date = df.index[-1]
+            future_dates = pd.date_range(last_date, periods=days_to_predict + 1, freq='D')[1:]
+
+            # Crear un DataFrame con los resultados
+            future_df = pd.DataFrame({'Fecha': future_dates, 'Valor Predicho': future_predictions.flatten()})
+            st.write('Predicciones para los próximos días:')
+            st.write(future_df)
+
 else:
     st.write('Por favor, carga los datos para ver la gráfica.')

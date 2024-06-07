@@ -11,6 +11,7 @@ from tensorflow.keras.callbacks import Callback
 # Clase de Callback para actualizar la barra de progreso en Streamlit
 class StreamlitProgressCallback(Callback):
     def __init__(self, progress_bar, status_text, epochs):
+        super().__init__()
         self.progress_bar = progress_bar
         self.status_text = status_text
         self.epochs = epochs
@@ -38,6 +39,7 @@ st.markdown("""
 
 # Función para cargar datos
 def cargar_datos():
+    # Descarga datos de acciones de Amazon desde el 1 de enero de 2010 hasta la fecha actual
     df = yf.download('AMZN', start='2010-01-01', end=pd.Timestamp.today().strftime('%Y-%m-%d'))
     return df
 
@@ -92,7 +94,6 @@ if st.session_state.df is not None:
         title='Serie de Tiempo del Valor de las Acciones de Amazon',
         xaxis_title='Fecha (Días)',
         yaxis_title='Precio de Cierre ajustado (USD)',
-        #xaxis_rangeslider_visible=True,
         width=1200,
         height=600,
         font=dict(
@@ -103,12 +104,26 @@ if st.session_state.df is not None:
     )
     st.plotly_chart(fig, use_container_width=True)
 
+    # Lista de opciones con descripciones
+    epoch_options = [
+        (2, 'epoch ≈ 1 min'),
+        (5, 'epochs ≈ 2 min'),
+        (50, 'epochs ≈ 10 min'),
+        (100, 'epochs ≈ 10 min'),
+        (150, 'epochs ≈ 15 min'),
+        (200, 'epochs ≈ 20 min')
+    ]
+    # Crear una lista de descripciones para mostrar en el selectbox
+    epoch_descriptions = [f'{epoch} {desc}' for epoch, desc in epoch_options]
+
     # Selección de cantidad de epochs
-    epochs = st.selectbox('Selecciona la cantidad de epochs para entrenar el modelo:', [1, 3, 5, 7, 10, 15], index=1)
+    selected_description = st.selectbox('Selecciona la cantidad de epochs para entrenar el modelo:', epoch_descriptions, index=1)
+
+    # Extraer el valor numérico de la opción seleccionada
+    epochs = int(selected_description.split(' ')[0])
 
     # Botón para entrenar el modelo
     if st.button('Entrenar modelo'):
-        # Mostrar barra de progreso
         progress_bar = st.progress(0)
         status_text = st.empty()
 
@@ -140,7 +155,7 @@ if st.session_state.df is not None:
 
         # Compilar y entrenar el modelo
         model.compile(optimizer='adam', loss='mean_squared_error')
-        model.fit(X_train, y_train, batch_size=1, epochs=epochs, callbacks=[StreamlitProgressCallback(progress_bar, status_text, epochs)])
+        model.fit(X_train, y_train, batch_size=256, epochs=epochs, callbacks=[StreamlitProgressCallback(progress_bar, status_text, epochs)])
 
         # Hacer predicciones
         predictions = model.predict(X_test)
@@ -214,5 +229,10 @@ if st.session_state.df is not None:
             st.write('Predicciones para los próximos días:')
             st.write(future_df)
 
+            # Recomendaciones de compra/venta
+            recomendaciones = ['Comprar' if future_predictions[i] > df['Adj Close'].iloc[-1] else 'Vender' for i in range(len(future_predictions))]
+            future_df['Recomendación'] = recomendaciones
+            st.write('Predicciones y recomendaciones:')
+            st.write(future_df)
 else:
     st.write('Por favor, carga los datos para ver la gráfica.')

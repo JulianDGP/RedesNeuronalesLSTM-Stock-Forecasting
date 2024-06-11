@@ -1,15 +1,17 @@
 # Redes Neuronales LSTM para Predicción de series temporales
-
-## Descripción
+Por:
+Julian Gomez
+Felipe Rivera
+## 📝 Descripción
 
 Este proyecto utiliza redes neuronales LSTM para tratar de hacer predicciones en el mercado de acciones. Se centra en analizar series temporales históricas de precios de acciones y generar predicciones futuras.
 
-## Requisitos
+## ⚠️ Requisitos
 
 - Python 3.8 o superior
 - pip (Administrador de paquetes de Python)
 
-## Instalación
+## 🛠️Instalación
 
 1. Clonar el repositorio:
 ```
@@ -36,11 +38,14 @@ python -m venv venv
 ```
 pip install -r requirements.txt
 ```
-## Ejecución
+## 🚀 Ejecución
 Para ejecutar el proyecto y visualizar la aplicación Streamlit
 1. Asegúrate de que el entorno virtual esté activado.
 2. Ejecuta el siguiente comando:
 ```
 streamlit run app.py
 ```
-Esto iniciará la aplicación en el navegador local.
+Esto iniciará la aplicación y estará accesible en el navegador web a través de la dirección http://localhost:8501, para cambiar el puerto de ejecucion de Streamlit:
+```
+streamlit run app.py --server.port 8080
+```

@@ -2,13 +2,16 @@
 
 ## 👨‍💻 Creadores
 Este proyecto fue creado por:
-Este proyecto fue creado por:
 * [<img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="18" height="18"> Julián Gomez](https://github.com/JulianDGP)
 * [<img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="18" height="18"> Felipe Rivera](https://github.com/LFelipe-RiveraH)
 
 ## 📝 Descripción
 
-Este proyecto utiliza redes neuronales LSTM para tratar de hacer predicciones en el mercado de acciones. Se centra en analizar series temporales históricas de precios de acciones y generar predicciones futuras.
+Este proyecto aplica un modelo de red neuronal LSTM para predecir tendencias futuras en el mercado de acciones de Amazon, analizando series temporales históricas de precios. Utiliza Python y Streamlit para ofrecer una interfaz de usuario interactiva que facilita la visualización y la interacción con los datos y predicciones del modelo.
+
+Streamlit es una potente biblioteca de Python que transforma scripts en aplicaciones web dinámicas, permitiendo tambien desplegar de forma automática en Github Codespaces, permitiendo a los usuarios interactuar con los resultados del modelo LSTM directamente desde una aplicación web en internet.
+
+Enlace: https://amazonforecasting.streamlit.app/
 
 ## ⚠️ Requisitos
 

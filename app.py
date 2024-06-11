@@ -8,19 +8,19 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
 from tensorflow.keras.callbacks import Callback
 
-# Clase de Callback para actualizar la barra de progreso en Streamlit
+# Clase de Callback para actualizar la barra de progreso en Streamlit durante el entrenamiento del modelo
 class StreamlitProgressCallback(Callback):
     def __init__(self, progress_bar, status_text, epochs):
         super().__init__()
-        self.progress_bar = progress_bar
-        self.status_text = status_text
-        self.epochs = epochs
-
+        self.progress_bar = progress_bar # Barra de progreso en la UI de Streamlit
+        self.status_text = status_text # Texto de estado en la UI de Streamlit
+        self.epochs = epochs # cantidad épocas para el entrenamiento.
+    # Método que se ejecuta al final de cada época
     def on_epoch_end(self, epoch, logs=None):
-        self.progress_bar.progress((epoch + 1) / self.epochs)
-        self.status_text.text(f'Epoch {epoch + 1}/{self.epochs} - Loss: {logs["loss"]:.4f}')
+        self.progress_bar.progress((epoch + 1) / self.epochs) # Actualiza la barra de progreso
+        self.status_text.text(f'Epoch {epoch + 1}/{self.epochs} - Loss: {logs["loss"]:.4f}') # Actualiza el texto de estado
 
-# Título de la Aplicación
+# Título de la Aplicación en Streamlit
 st.title('Predicción del Valor Futuro de las Acciones de Amazon usando Redes Neuronales LSTM.')
 
 # Mostrar la imagen debajo del título
@@ -37,18 +37,18 @@ st.markdown("""
   <a href="https://www.linkedin.com/in/luis-felipe-rivera-hern%C3%A1ndez-8587b4185/" target="_blank"><img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="25"></a> 
 """, unsafe_allow_html=True)
 
-# Función para cargar datos
+# Función para cargar datos de acciones de Amazon desde Yahoo Finance
 def cargar_datos():
     # Descarga datos de acciones de Amazon desde el 1 de enero de 2010 hasta la fecha actual
     df = yf.download('AMZN', start='2010-01-01', end=pd.Timestamp.today().strftime('%Y-%m-%d'))
     return df
 
-# Función para crear secuencias
+# Función para crear secuencias de datos para entrenar el modelo LSTM
 def create_sequences(data, seq_length):
     X, y = [], []
     for i in range(len(data) - seq_length):
-        X.append(data[i:i + seq_length])
-        y.append(data[i + seq_length])
+        X.append(data[i:i + seq_length]) # Secuencia de entrada
+        y.append(data[i + seq_length])  # Valor de salida correspondiente
     return np.array(X), np.array(y)
 
 # Inicializar variables de estado
@@ -69,7 +69,7 @@ if 'seq_length' not in st.session_state:
 
 # Cargar datos si se presiona el botón
 if st.button('Cargar datos actualizados desde Yahoo!'):
-    df = cargar_datos()
+    df = cargar_datos() # Cargar set de daos desde Yahoo Finance
     start_date = df.index.min().strftime('%Y-%m-%d')
     end_date = df.index.max().strftime('%Y-%m-%d')
     st.write(f'Datos cargados sin procesar desde {start_date} hasta {end_date}:')
@@ -100,11 +100,28 @@ if st.session_state.df is not None:
             family="Courier New, monospace",
             size=18,
             color="#7f7f7f"
+        ),
+        xaxis=dict(
+            showgrid=True,  # Mostrar líneas de la cuadrícula
+            gridcolor='rgba(128, 128, 128, 0.5)',  # Color de la cuadrícula
+        ),
+        yaxis=dict(
+            showgrid=True,  # Mostrar líneas de la cuadrícula
+            gridcolor='rgba(128, 128, 128, 0.5)',  # Color de la cuadrícula
         )
     )
     st.plotly_chart(fig, use_container_width=True)
+    # Mostrar información de las parametrizaciones
+    st.markdown("""
+    **Parámetros del Modelo:**
 
-    # Lista de opciones con descripciones
+    - **Epochs:** Número de veces que el modelo verá el conjunto de datos completo durante el entrenamiento.
+    - **Batch Size:** Número de muestras que se procesan antes de actualizar el modelo. Influye en la memoria y la velocidad de entrenamiento.
+    - **Neuronas LSTM (Capa 1):** Número de neuronas en la primera capa LSTM, afecta la capacidad del modelo para aprender patrones complejos.
+    - **Neuronas LSTM (Capa 2):** Número de neuronas en la segunda capa LSTM, permite captar características más complejas de los datos.
+    """)
+
+    # Lista de opciones con descripciones de tiempo de entrenamiento
     epoch_options = [
         (2, 'epoch ≈ 1 min'),
         (5, 'epochs ≈ 2 min'),
@@ -120,27 +137,36 @@ if st.session_state.df is not None:
     selected_description = st.selectbox('Selecciona la cantidad de epochs para entrenar el modelo:', epoch_descriptions, index=1)
 
     # Extraer el valor numérico de la opción seleccionada
-    epochs = int(selected_description.split(' ')[0])
+    selected_epochs = int(selected_description.split(' ')[0])
+
+    # Selección de tamaño de batch
+    selected_batch_size = st.selectbox('Selecciona el tamaño del batch:', [4, 8, 16, 32, 64, 128, 256], index=4)
+
+    # Selección de neuronas en la primera capa LSTM
+    lstm_neurons_1 = st.selectbox('Selecciona el número de neuronas en la primera capa LSTM:', [10, 25, 50, 100], index=2)
+
+    # Selección de neuronas en la segunda capa LSTM
+    lstm_neurons_2 = st.selectbox('Selecciona el número de neuronas en la segunda capa LSTM:', [10, 25, 50, 100], index=2)
 
     # Botón para entrenar el modelo
     if st.button('Entrenar modelo'):
-        progress_bar = st.progress(0)
-        status_text = st.empty()
+        progress_bar = st.progress(0) # Inicializar barra de progreso
+        status_text = st.empty() # Inicializar texto de estado
 
         # Preprocesar los datos
         data = df[['Adj Close']]
-        data = data.dropna()
-        scaler = MinMaxScaler(feature_range=(0, 1))
-        scaled_data = scaler.fit_transform(data)
+        data = data.dropna() # Usar solo la columna de precios de cierre ajustados
+        scaler = MinMaxScaler(feature_range=(0, 1)) # Escalador de MinMax
+        scaled_data = scaler.fit_transform(data) # Escalar los datos
 
         # Dividir en entrenamiento y prueba
-        train_size = int(len(scaled_data) * 0.9)
+        train_size = int(len(scaled_data) * 0.9) # 90% para entrenamiento
         train_data = scaled_data[:train_size]
         test_data = scaled_data[train_size:]
 
-        seq_length = 60
-        X_train, y_train = create_sequences(train_data, seq_length)
-        X_test, y_test = create_sequences(test_data, seq_length)
+        seq_length = 60 # Longitud de la secuencia para LSTM
+        X_train, y_train = create_sequences(train_data, seq_length) # Crear secuencias para entrenamiento
+        X_test, y_test = create_sequences(test_data, seq_length) # Crear secuencias para prueba
 
         # Ajustar la forma de los datos para LSTM
         X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1))
@@ -148,18 +174,21 @@ if st.session_state.df is not None:
 
         # Construir el modelo LSTM
         model = Sequential()
-        model.add(LSTM(50, return_sequences=True, input_shape=(seq_length, 1)))
-        model.add(LSTM(50, return_sequences=False))
-        model.add(Dense(25))
-        model.add(Dense(1))
+        model.add(LSTM(lstm_neurons_1, return_sequences=True, input_shape=(seq_length, 1)))  # Primera capa LSTM
+        model.add(LSTM(lstm_neurons_2, return_sequences=False)) # Segunda capa LSTM
+        model.add(Dense(25)) # Capa densa con 25 neuronas
+        model.add(Dense(1)) # Capa de salida con una neurona
 
         # Compilar y entrenar el modelo
-        model.compile(optimizer='adam', loss='mean_squared_error')
-        model.fit(X_train, y_train, batch_size=256, epochs=epochs, callbacks=[StreamlitProgressCallback(progress_bar, status_text, epochs)])
+        model.compile(optimizer='adam', loss='mean_squared_error')  # Compilación del modelo
+        model.fit(X_train, y_train,
+                  batch_size=selected_batch_size,
+                  epochs=selected_epochs,
+                  callbacks=[StreamlitProgressCallback(progress_bar, status_text, selected_epochs)]) # Entrenamiento del modelo
 
         # Hacer predicciones
         predictions = model.predict(X_test)
-        predictions = scaler.inverse_transform(predictions)
+        predictions = scaler.inverse_transform(predictions) # Desescalar las predicciones
 
         # Crear índice de validación
         valid = df.iloc[train_size + seq_length:].copy()
@@ -172,7 +201,7 @@ if st.session_state.df is not None:
         st.session_state.model = model
         st.session_state.train_size = train_size
         st.session_state.seq_length = seq_length
-        st.experimental_rerun()
+        st.experimental_rerun() # Recargar la página para reflejar los cambios
 
     # Mostrar predicciones si el modelo ha sido entrenado
     if st.session_state.model_trained:
@@ -200,7 +229,15 @@ if st.session_state.df is not None:
                 family="Courier New, monospace",
                 size=18,
                 color="#7f7f7f"
-            )
+            ),
+            xaxis=dict(
+            showgrid=True,  # Mostrar líneas de la cuadrícula
+            gridcolor='rgba(128, 128, 128, 0.5)',  # Color de la cuadrícula
+        ),
+        yaxis=dict(
+            showgrid=True,  # Mostrar líneas de la cuadrícula
+            gridcolor='rgba(128, 128, 128, 0.5)',  # Color de la cuadrícula
+        )
         )
         st.plotly_chart(fig, use_container_width=True)
 

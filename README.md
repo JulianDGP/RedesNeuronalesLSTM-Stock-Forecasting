@@ -1,7 +1,10 @@
 # Redes Neuronales LSTM para Predicción de series temporales
-Por:
-Julian Gomez
-Felipe Rivera
+
+## 👨‍💻 Creadores
+Este proyecto fue creado por:
+* [![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/JulianDGP) **Julián**
+* [![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/LFelipe-RiveraH) **Felipe**
+
 ## 📝 Descripción
 
 Este proyecto utiliza redes neuronales LSTM para tratar de hacer predicciones en el mercado de acciones. Se centra en analizar series temporales históricas de precios de acciones y generar predicciones futuras.

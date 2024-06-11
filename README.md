@@ -1,9 +1,9 @@
 # Nombre del Proyecto
-
+===
 Descripción breve del proyecto.
 
-## Requisitos
-
+Requisitos
+============
 - Python 3.8 o superior
 - pip (Administrador de paquetes de Python)
 

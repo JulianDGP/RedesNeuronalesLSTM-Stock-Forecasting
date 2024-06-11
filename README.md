@@ -2,8 +2,9 @@
 
 ## 👨‍💻 Creadores
 Este proyecto fue creado por:
-* [![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/JulianDGP) **Julián**
-* [![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/LFelipe-RiveraH) **Felipe**
+Este proyecto fue creado por:
+* [<img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="18" height="18"> Julián Gomez](https://github.com/JulianDGP)
+* [<img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="18" height="18"> Felipe Rivera](https://github.com/LFelipe-RiveraH)
 
 ## 📝 Descripción
 
@@ -48,7 +49,7 @@ Para ejecutar el proyecto y visualizar la aplicación Streamlit
 ```
 streamlit run app.py
 ```
-Esto iniciará la aplicación y estará accesible en el navegador web a través de la dirección http://localhost:8501, para cambiar el puerto de ejecucion de Streamlit:
+Esto iniciará la aplicación y estará accesible en el navegador web a través de la dirección http://localhost:8501, para ejecutar la aplicacion cambiando el puerto de ejecución de Streamlit debe usarse:
 ```
 streamlit run app.py --server.port 8080
 ```

@@ -125,6 +125,7 @@ if st.session_state.df is not None:
     epoch_options = [
         (2, 'epoch ≈ 1 min'),
         (5, 'epochs ≈ 2 min'),
+        (25, 'epochs ≈ 2 min'),
         (50, 'epochs ≈ 10 min'),
         (100, 'epochs ≈ 10 min'),
         (150, 'epochs ≈ 15 min'),
@@ -134,7 +135,7 @@ if st.session_state.df is not None:
     epoch_descriptions = [f'{epoch} {desc}' for epoch, desc in epoch_options]
 
     # Selección de cantidad de epochs
-    selected_description = st.selectbox('Selecciona la cantidad de epochs para entrenar el modelo:', epoch_descriptions, index=1)
+    selected_description = st.selectbox('Selecciona la cantidad de epochs para entrenar el modelo:', epoch_descriptions, index=2)
 
     # Extraer el valor numérico de la opción seleccionada
     selected_epochs = int(selected_description.split(' ')[0])
